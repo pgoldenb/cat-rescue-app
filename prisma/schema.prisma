@@ -1,0 +1,114 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
+}
+
+enum UserStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  UNKNOWN
+}
+
+enum CatStatus {
+  NOT_TNRED
+  TNRED
+  RESCUED
+  DECEASED
+  MISSING
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String
+  status    UserStatus @default(PENDING)
+  isAdmin   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  catsCreated     Cat[]              @relation("CatCreatedBy")
+  catsUpdated     Cat[]              @relation("CatUpdatedBy")
+  caretakersCreated Caretaker[]      @relation("CaretakerCreatedBy")
+  caretakersUpdated Caretaker[]      @relation("CaretakerUpdatedBy")
+  statusHistory   CatStatusHistory[]
+
+  @@map("users")
+}
+
+model Cat {
+  id            String    @id @default(cuid())
+  name          String?
+  gender        Gender
+  status        CatStatus @default(NOT_TNRED)
+  estimatedAge  String?
+  description   String?
+  microchipInfo String?
+  latitude      Decimal   @db.Decimal(10, 8)
+  longitude     Decimal   @db.Decimal(11, 8)
+  imageUrl      String?
+  dateAdded     DateTime  @default(now())
+  createdById   String
+  updatedById   String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  createdBy     User               @relation("CatCreatedBy", fields: [createdById], references: [id])
+  updatedBy     User               @relation("CatUpdatedBy", fields: [updatedById], references: [id])
+  statusHistory CatStatusHistory[]
+
+  @@map("cats")
+}
+
+model CatStatusHistory {
+  id        String    @id @default(cuid())
+  catId     String
+  oldStatus CatStatus?
+  newStatus CatStatus
+  notes     String?
+  updatedById String
+  updatedAt DateTime  @default(now())
+
+  // Relations
+  cat       Cat  @relation(fields: [catId], references: [id], onDelete: Cascade)
+  updatedBy User @relation(fields: [updatedById], references: [id])
+
+  @@map("cat_status_history")
+}
+
+model Caretaker {
+  id              String   @id @default(cuid())
+  name            String
+  contactInfo     Json     // Flexible JSON for phone, email, etc.
+  feedingSchedule String?
+  tnrCertified    Boolean  @default(false)
+  backupContacts  Json?    // Array of backup contact objects
+  latitude        Decimal  @db.Decimal(10, 8)
+  longitude       Decimal  @db.Decimal(11, 8)
+  createdById     String
+  updatedById     String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  createdBy User @relation("CaretakerCreatedBy", fields: [createdById], references: [id])
+  updatedBy User @relation("CaretakerUpdatedBy", fields: [updatedById], references: [id])
+
+  @@map("caretakers")
+}
