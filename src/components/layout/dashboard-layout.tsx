@@ -3,15 +3,17 @@
 import { useSession, signOut } from 'next-auth/react'
 import Link from 'next/link'
 import { useState } from 'react'
+import { usePathname } from 'next/navigation'
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const pathname = usePathname()
 
   const navigation = [
-    { name: 'Dashboard', href: '/dashboard', current: true },
-    { name: 'Cats', href: '/dashboard/cats', current: false },
-    { name: 'Caretakers', href: '/dashboard/caretakers', current: false },
+    { name: 'Dashboard', href: '/dashboard', current: pathname === '/dashboard' },
+    { name: 'Cats', href: '/dashboard/cats', current: pathname.startsWith('/dashboard/cats') },
+    { name: 'Caretakers', href: '/dashboard/caretakers', current: pathname.startsWith('/dashboard/caretakers') },
   ]
 
   const adminNavigation = [
