@@ -12,6 +12,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', current: pathname === '/dashboard' },
+    { name: 'Map', href: '/dashboard/map', current: pathname.startsWith('/dashboard/map') },
     { name: 'Cats', href: '/dashboard/cats', current: pathname.startsWith('/dashboard/cats') },
     { name: 'Caretakers', href: '/dashboard/caretakers', current: pathname.startsWith('/dashboard/caretakers') },
   ]
